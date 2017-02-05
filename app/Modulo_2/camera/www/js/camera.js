@@ -10,7 +10,9 @@ var app={
 
 	iniciaBotones: function(){
 		var buttonAction = document.querySelector("#button-action");
-		buttonAction.addEventListener('click', this.tomarFoto);
+		buttonAction.addEventListener('click', function(){
+			app.cargarFoto(Camera.PictureSourceType.CAMERA);
+		});
 
 		var filterButtons = document.querySelectorAll('.button-filter');
 		filterButtons[0].addEventListener("click", function(){
@@ -22,20 +24,26 @@ var app={
 		filterButtons[2].addEventListener("click", function(){
 			app.aplicarFiltro('sepia');
 		});
+
+		var buttonGallery = document.querySelector("#button-gallery");
+		buttonGallery.addEventListener("click", function(){
+			app.cargarFoto(Camera.PictureSourceType.PHOTOLIBRARY);
+		});
 	},
 
-	tomarFoto: function(){
+	cargarFoto: function(pictureSourceType){
 		var opciones = {
 			quality: 50,
+			sourceType: pictureSourceType,
 			destinationType: Camera.DestinationType.FILE_URI,
 			targetWidth: 300,
 			targetHeight: 300,
 			correctOrientation: true
 		};
-		navigator.camera.getPicture(app.fotoTomada, app.errorAlTomarFoto, opciones);
+		navigator.camera.getPicture(app.fotoCargada, app.errorAlCargarFoto, opciones);
 	},
 
-	fotoTomada: function(imageURI){
+	fotoCargada: function(imageURI){
 		var img = document.createElement('img');
 		img.onload = function(){
 			app.pintarFoto(img);
