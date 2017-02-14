@@ -4,14 +4,27 @@ var app = {
     "notas": [{"titulo": "Comprar pan", "contenido": "Oferta en la panaderia de la esquina"}]
   },
 
+  firebaseConfig: {
+    apiKey: "AIzaSyDKH83e0nGXVTq1Tx5CexclpxEs12reQKg",
+    authDomain: "mooc-notes.firebaseapp.com",
+    databaseURL: "https://mooc-notes.firebaseio.com",
+    storageBucket: "mooc-notes.appspot.com",
+    messagingSenderId: "224883080478"
+  },
+
   inicio: function(){
     this.iniciaFastClick();
+    this.iniciaFirebase();
     this.iniciaBotones();
     this.refrescarLista();
   },
 
   iniciaFastClick: function() {
     FastClick.attach(document.body);
+  },
+
+  iniciaFirebase: function() {
+    firebase.initializeApp(this.firebaseConfig);
   },
 
   iniciaBotones: function() {
@@ -72,6 +85,7 @@ var app = {
     return "<div class='note-item' id='notas[" + id + "]'>" + titulo + "</div>";
   },
 
+
   grabarDatos: function() {
     window.resolveLocalFileSystemURL(cordova.file.externalApplicationStorageDirectory, this.gotFS, this.fail);
   },
@@ -85,10 +99,22 @@ var app = {
   },
 
   gotFileWriter: function(writer) {
-        writer.onwriteend = function(evt) {
-          console.log("datos grabados en externalApplicationStorageDirectory");
-        };
-        writer.write(JSON.stringify(app.model));
+    writer.onwriteend = function(evt) {
+      console.log("datos grabados en externalApplicationStorageDirectory");
+      if(app.hayWifi()) {
+        app.salvarFirebase();
+      }
+    };
+    writer.write(JSON.stringify(app.model));
+  },
+
+  salvarFirebase: function() {
+    var ref = firebase.storage().ref('model.json');
+    ref.putString(JSON.stringify(app.model));
+  },
+
+  hayWifi: function() {
+    return navigator.connection.type==='wifi';
   },
 
   leerDatos: function() {
@@ -96,7 +122,7 @@ var app = {
   },
 
   obtenerFS: function(fileSystem) {
-    fileSystem.getFile("files/"+"model.json", null, app.obtenerFileEntry, app.fail);
+    fileSystem.getFile("files/"+"model.json", null, app.obtenerFileEntry, app.noFile);
   },
 
   obtenerFileEntry: function(fileEntry) {
@@ -113,6 +139,10 @@ var app = {
     reader.readAsText(file);
   },
 
+  noFile: function(error) {
+    app.inicio();
+  },
+
   fail: function(error) {
     console.log(error.code);
   },
@@ -120,7 +150,7 @@ var app = {
 };
 
 if ('addEventListener' in document) {
-  document.addEventListener("DOMContentLoaded", function() {
+  document.addEventListener("deviceready", function() {
     app.leerDatos();
   }, false);
 };
