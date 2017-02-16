@@ -8,7 +8,7 @@ var app={
     alto  = document.documentElement.clientHeight;
     ancho = document.documentElement.clientWidth;
     
-   //app.vigilaSensores();
+   app.vigilaSensores();
    app.iniciaJuego();
   },
 
@@ -26,6 +26,8 @@ var app={
     }
 
     function create() {
+
+
       //Meta
       objetivo = game.add.sprite(40, app.inicioFinishY(),'objetivo');
       //Bola
@@ -41,16 +43,36 @@ var app={
           this.bitmap.update();
           
           // adding the bitmap data as a sprite
-          game.add.sprite(0, 0, this.bitmap);
+          level = game.add.sprite(0, 0, this.bitmap);
+
+          //SCORE
+          scoreText = game.add.text(16, alto-50, "SCORE:"+puntuacion, { fontSize: '50px', fill: '#edf0f0' });
+
+          game.physics.arcade.enable(bola);
+          game.physics.arcade.enable(objetivo);
+          game.physics.arcade.enable(level);
+
+          bola.body.collideWorldBounds = true;
+          bola.body.onWorldBounds = new Phaser.Signal();
+          bola.body.onWorldBounds.add(app.decrementaPuntuacion, this);
 
     }
 
     function update(){
-     
+         var factorDificultad = 300;
+         bola.body.velocity.y = (velocidadY * factorDificultad);
+         bola.body.velocity.x = (velocidadX * (-1 * factorDificultad));
+
+         game.physics.arcade.overlap(bola, objetivo, app.finalizaJuego, null, this);
     }
 
     var estados = { preload: preload, create: create, update: update };
     var game = new Phaser.Game(ancho, alto, Phaser.CANVAS, 'phaser',estados);
+  },
+
+  decrementaPuntuacion: function(){
+    puntuacion = puntuacion-1;
+    scoreText.text = "SCORE:"+puntuacion;
   },
 
   inicioFinishX: function(){
@@ -60,6 +82,42 @@ var app={
   inicioFinishY: function(){
     return alto - 100;
   },
+
+  vigilaSensores: function(){
+    
+    function onError() {
+        console.log('onError!');
+    }
+
+    function onSuccess(datosAceleracion){
+      app.detectaAgitacion(datosAceleracion);
+      app.registraDireccion(datosAceleracion);
+    }
+
+    navigator.accelerometer.watchAcceleration(onSuccess, onError,{ frequency: 10 });
+  },
+
+  detectaAgitacion: function(datosAceleracion){
+    var agitacionX = datosAceleracion.x > 10;
+    var agitacionY = datosAceleracion.y > 10;
+
+    if (agitacionX || agitacionY){
+      setTimeout(app.recomienza, 1000);
+    }
+  },
+
+  recomienza: function(){
+    document.location.reload(true);
+  },
+
+  registraDireccion: function(datosAceleracion){
+    velocidadX = datosAceleracion.x ;
+    velocidadY = datosAceleracion.y ;
+  },
+
+  finalizaJuego: function(){
+    game.physics.arcade.disable(bola);
+  }
   
 };
 
