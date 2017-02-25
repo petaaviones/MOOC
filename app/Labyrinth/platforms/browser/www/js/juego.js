@@ -34,7 +34,7 @@ var app={
       bola = game.add.sprite(40, 60,'bola');
       // LEVEL MAZE
        // creation of a bitmap data with the same size as the game
-          this.bitmap = game.add.bitmapData(game.width, game.height);
+          /*this.bitmap = game.add.bitmapData(game.width, game.height);
           
           // drawing proper "level" image on the bitmap data
           this.bitmap.draw("level3");
@@ -43,7 +43,8 @@ var app={
           this.bitmap.update();
           
           // adding the bitmap data as a sprite
-          level = game.add.sprite(0, 0, this.bitmap);
+          level = game.add.sprite(0, 0, this.bitmap);*/
+          level = game.add.sprite(0, 0, 'level3');
 
           //SCORE
           scoreText = game.add.text(16, alto-50, "SCORE:"+puntuacion, { fontSize: '50px', fill: '#edf0f0' });
@@ -56,6 +57,11 @@ var app={
           bola.body.onWorldBounds = new Phaser.Signal();
           bola.body.onWorldBounds.add(app.decrementaPuntuacion, this);
 
+          level.body.collideWorldBounds = true;
+          level.body.onWorldBounds = new Phaser.Signal();
+          level.body.onWorldBounds.add(app.colisionEscenario, this);
+          level.body.immovable = true;
+
     }
 
     function update(){
@@ -63,6 +69,8 @@ var app={
          bola.body.velocity.y = (velocidadY * factorDificultad);
          bola.body.velocity.x = (velocidadX * (-1 * factorDificultad));
 
+
+         //game.physics.arcade.collide(bola, level, app.colisionEscenario, null, this);
          game.physics.arcade.overlap(bola, objetivo, app.finalizaJuego, null, this);
     }
 
@@ -117,6 +125,10 @@ var app={
 
   finalizaJuego: function(){
     game.physics.arcade.disable(bola);
+  },
+
+  colisionEscenario: function(){
+    console.log("Me choco con las paredes")
   }
   
 };
